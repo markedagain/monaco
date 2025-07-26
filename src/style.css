@@ -1,0 +1,114 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.header {
+  background-color: #2d2d30;
+  padding: 1rem;
+  border-bottom: 1px solid #3e3e42;
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.controls label {
+  font-weight: 500;
+}
+
+.controls select {
+  padding: 0.5rem;
+  background-color: #3c3c3c;
+  color: #cccccc;
+  border: 1px solid #3e3e42;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.controls button {
+  padding: 0.5rem 1rem;
+  background-color: #0e639c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.controls button:hover {
+  background-color: #1177bb;
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.editor-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#editor-container {
+  flex: 1;
+}
+
+.output-panel {
+  width: 400px;
+  background-color: #252526;
+  border-left: 1px solid #3e3e42;
+  display: flex;
+  flex-direction: column;
+}
+
+.output-header {
+  padding: 0.5rem 1rem;
+  background-color: #2d2d30;
+  border-bottom: 1px solid #3e3e42;
+  font-weight: 500;
+}
+
+.problems {
+  padding: 1rem;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.problems.error {
+  color: #f48771;
+}
+
+.problems.success {
+  color: #89d185;
+}
+
+#output {
+  padding: 1rem;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  flex: 1;
+  border-top: 1px solid #3e3e42;
+}

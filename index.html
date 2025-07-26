@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" type="image/svg+xml" href="/vite.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Monaco SQL Languages</title>
+	</head>
+	<body>
+		<div class="container">
+			<header class="header">
+				<div class="controls">
+					<label for="language-selector">Language:</label>
+					<select id="language-selector"></select>
+					<button id="parse-button">Parse SQL</button>
+				</div>
+			</header>
+			<main class="main-content">
+				<div class="editor-panel">
+					<div id="editor-container"></div>
+				</div>
+				<aside class="output-panel">
+					<div class="output-header">Validation</div>
+					<div id="problems" class="problems"></div>
+					<div class="output-header">Parse Output</div>
+					<div id="output"></div>
+				</aside>
+			</main>
+		</div>
+		<script type="module" src="/src/main.js"></script>
+	</body>
+</html>
