@@ -1,0 +1,36 @@
+{
+  "name": "monaco-sql-languages-ext",
+  "version": "0.1.0",
+  "description": "Enhanced SQL language support for Monaco Editor with improved completions",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"No tests yet\""
+  },
+  "keywords": [
+    "monaco-editor",
+    "sql",
+    "completions",
+    "language-support"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "monaco-editor": ">=0.31.0",
+    "monaco-sql-languages": ">=0.15.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "rollup": "^3.29.4",
+    "@rollup/plugin-terser": "^0.4.4"
+  }
+}

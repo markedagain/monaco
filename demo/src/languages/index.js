@@ -1,117 +1,26 @@
-import 'monaco-sql-languages/esm/all.contributions.js';
-import './languageWorker';
-import './theme';
-import { setupLanguageFeatures, LanguageIdEnum } from 'monaco-sql-languages/esm/main.js';
-import { completionService } from './helpers/completionService';
+import { setupLanguages, setupLanguageWorkers } from 'monaco-sql-languages-ext';
 
-/**
- * replace dtstack custom params, eg: @@{componentParams}, ${taskCustomParams}
- * @param code editor value
- * @returns replaced string
- */
-const preprocessCode = (code) => {
-	const regex1 = /@@{[A-Za-z0-9._-]*}/g;
-	const regex2 = /\${[A-Za-z0-9._-]*}/g;
-	let result = code;
+// Import workers
+import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
+import FlinkSQLWorker from 'monaco-sql-languages/esm/languages/flink/flink.worker?worker';
+import SparkSQLWorker from 'monaco-sql-languages/esm/languages/spark/spark.worker?worker';
+import HiveSQLWorker from 'monaco-sql-languages/esm/languages/hive/hive.worker?worker';
+import PGSQLWorker from 'monaco-sql-languages/esm/languages/pgsql/pgsql.worker?worker';
+import MySQLWorker from 'monaco-sql-languages/esm/languages/mysql/mysql.worker?worker';
+import TrinoSQLWorker from 'monaco-sql-languages/esm/languages/trino/trino.worker?worker';
+import ImpalaSQLWorker from 'monaco-sql-languages/esm/languages/impala/impala.worker?worker';
 
-	if (regex1.test(code)) {
-		result = result.replace(regex1, (str) => {
-			return str.replace(/@|{|}|\.|-/g, '_');
-		});
-	}
-	if (regex2.test(code)) {
-		result = result.replace(regex2, (str) => {
-			return str.replace(/\$|{|}|\.|-/g, '_');
-		});
-	}
-	return result;
-};
-
-/**
- * replace dtstack custom grammar, eg: @@{componentParams}, ${taskCustomParams}
- * @param code editor value
- * @param mark some sql grammar need special mark to replace the beginning and the end
- * @returns replaced string
- */
-const preprocessCodeHive = (code, mark) => {
-	const regex1 = /@@{[A-Za-z0-9._-]*}/g;
-	const regex2 = /\${[A-Za-z0-9._-]*}/g;
-	let result = code;
-
-	if (regex1.test(code)) {
-		result = result.replace(regex1, (str) => {
-			if (mark) {
-				return str
-					.replace(/@/, mark)
-					.replace(/}/, mark)
-					.replace(/@|{|\.|-/g, '_');
-			}
-			return str.replace(/@|{|}|\.|-/g, '_');
-		});
-	}
-	if (regex2.test(code)) {
-		result = result.replace(regex2, (str) => {
-			if (mark) {
-				return str.replace(/\$|}/g, mark).replace(/{|\.|-/g, '_');
-			}
-			return str.replace(/\$|{|}|\.|-/g, '_');
-		});
-	}
-	return result;
-};
-
-setupLanguageFeatures(LanguageIdEnum.FLINK, {
-	completionItems: {
-		enable: true,
-		completionService
-	},
-	preprocessCode
+// Setup workers
+setupLanguageWorkers({
+	EditorWorker,
+	FlinkSQLWorker,
+	SparkSQLWorker,
+	HiveSQLWorker,
+	PGSQLWorker,
+	MySQLWorker,
+	TrinoSQLWorker,
+	ImpalaSQLWorker
 });
 
-setupLanguageFeatures(LanguageIdEnum.SPARK, {
-	completionItems: {
-		enable: true,
-		completionService
-	},
-	preprocessCode
-});
-
-setupLanguageFeatures(LanguageIdEnum.HIVE, {
-	completionItems: {
-		enable: true,
-		completionService
-	},
-	preprocessCode: (code) => preprocessCodeHive(code, '`')
-});
-
-setupLanguageFeatures(LanguageIdEnum.MYSQL, {
-	completionItems: {
-		enable: true,
-		completionService
-	},
-	preprocessCode
-});
-
-setupLanguageFeatures(LanguageIdEnum.TRINO, {
-	completionItems: {
-		enable: true,
-		completionService
-	},
-	preprocessCode
-});
-
-setupLanguageFeatures(LanguageIdEnum.PG, {
-	completionItems: {
-		enable: true,
-		completionService
-	},
-	preprocessCode
-});
-
-setupLanguageFeatures(LanguageIdEnum.IMPALA, {
-	completionItems: {
-		enable: true,
-		completionService
-	},
-	preprocessCode
-});
+// Setup enhanced language features
+setupLanguages();
