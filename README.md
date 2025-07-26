@@ -235,6 +235,99 @@ import {
 } from 'monaco-sql-languages-ext';
 ```
 
+## Query Execution
+
+This package provides SQL editing features (completion, syntax highlighting, validation) but does not include query execution. To execute SQL queries, you'll need to implement your own execution logic.
+
+### Getting SQL Content from Editor
+
+```javascript
+// Get entire editor content
+const sqlQuery = editor.getValue();
+
+// Get selected text only
+const selectedText = editor.getModel().getValueInRange(editor.getSelection());
+```
+
+### Adding Execute Functionality
+
+#### Option 1: Execute Button
+
+```javascript
+const executeSql = async () => {
+  const sqlQuery = editor.getValue();
+  
+  try {
+    const response = await fetch('/api/execute-sql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        query: sqlQuery, 
+        database: selectedDatabase 
+      })
+    });
+    
+    const results = await response.json();
+    
+    // Display results in your UI
+    console.log('Query results:', results);
+    displayResults(results);
+  } catch (error) {
+    console.error('Query execution failed:', error);
+  }
+};
+
+// Add to your component
+<button @click="executeSql">Execute Query</button>
+```
+
+#### Option 2: Keyboard Shortcuts
+
+```javascript
+// Add Ctrl+Enter to execute
+editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+  executeSql();
+});
+```
+
+#### Option 3: Context Menu
+
+```javascript
+// Add execute option to right-click menu
+editor.addAction({
+  id: 'execute-sql',
+  label: 'Execute Query',
+  keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter],
+  contextMenuGroupId: 'navigation',
+  contextMenuOrder: 1,
+  run: () => executeSql()
+});
+```
+
+### Backend API Example
+
+```javascript
+// Express.js backend example
+app.post('/api/execute-sql', async (req, res) => {
+  const { query, database } = req.body;
+  
+  try {
+    // Execute query against your database
+    const results = await mysql.query(query);
+    res.json({ success: true, data: results });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+});
+```
+
+### Integration with Popular SQL Clients
+
+- **MySQL**: Use `mysql2` package for Node.js backends
+- **PostgreSQL**: Use `pg` package
+- **SQLite**: Use `better-sqlite3` package
+- **Cloud Databases**: Use provider-specific SDKs (AWS RDS, Google Cloud SQL, etc.)
+
 ## Requirements
 
 - Monaco Editor >= 0.31.0
