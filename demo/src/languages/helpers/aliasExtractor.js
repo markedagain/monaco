@@ -82,6 +82,43 @@ export function extractDatabaseAliases(sqlText) {
 }
 
 /**
+ * Extract all table names from SQL text (not just aliases)
+ * Handles patterns like:
+ * - FROM table_name
+ * - JOIN table_name
+ * - FROM database.table_name
+ */
+export function extractTableNames(sqlText) {
+    if (!sqlText) return [];
+    
+    const tables = [];
+    
+    // Patterns to match table names
+    const patterns = [
+        // FROM/JOIN table_name (followed by space, comma, WHERE, or end)
+        /(?:FROM|JOIN)\s+([^\s,]+)(?=\s|,|$|WHERE)/gi,
+        // FROM/JOIN database.table_name
+        /(?:FROM|JOIN)\s+(\w+\.\w+)(?=\s|,|$|WHERE)/gi
+    ];
+    
+    patterns.forEach(pattern => {
+        let match;
+        while ((match = pattern.exec(sqlText)) !== null) {
+            const tableName = match[1];
+            
+            // Skip if followed by AS or an alias
+            const afterMatch = sqlText.substring(match.index + match[0].length);
+            if (!/^\s+(AS\s+)?\w+/.test(afterMatch) || /^\s+WHERE/.test(afterMatch)) {
+                tables.push(tableName);
+            }
+        }
+    });
+    
+    // Remove duplicates
+    return [...new Set(tables)];
+}
+
+/**
  * Check if a word is a reserved SQL keyword
  */
 function isReservedKeyword(word) {
@@ -111,18 +148,50 @@ export function createAliasCompletionItems(aliases) {
 }
 
 /**
- * Check if current position is after an alias dot notation
- * e.g., "alias." should suggest columns from the aliased table
+ * Check if current position is after an alias or table name dot notation
+ * e.g., "alias." or "table_name." should suggest columns
  */
 export function isAfterAliasDot(sqlText, position) {
     const textBeforePosition = sqlText.substring(0, position);
-    const aliasPattern = /(\w+)\.$/;
-    const match = textBeforePosition.match(aliasPattern);
+    const pattern = /(\w+)\.$/;
+    const match = textBeforePosition.match(pattern);
     
     if (match) {
-        const potentialAlias = match[1];
+        const identifier = match[1];
+        
+        // First check if it's an alias
         const aliases = extractTableAliases(sqlText);
-        return aliases.find(alias => alias.alias === potentialAlias);
+        const aliasMatch = aliases.find(alias => alias.alias === identifier);
+        if (aliasMatch) {
+            return aliasMatch;
+        }
+        
+        // If not an alias, check if it's a table name from FROM clause
+        const tablePattern = new RegExp(`(?:FROM|JOIN)\\s+(\\w+)(?:\\s|,|\\s+WHERE|\\s+AS|\\s+\\w+|$)`, 'gi');
+        let tableMatch;
+        while ((tableMatch = tablePattern.exec(sqlText)) !== null) {
+            const tableName = tableMatch[1];
+            if (tableName === identifier) {
+                return {
+                    alias: identifier,
+                    tableName: identifier,
+                    type: 'table'
+                };
+            }
+        }
+        
+        // Also check for tables with database prefix
+        const dbTablePattern = new RegExp(`(?:FROM|JOIN)\\s+(?:\\w+\\.)?(\\w+)(?:\\s|,|\\s+WHERE|\\s+AS|\\s+\\w+|$)`, 'gi');
+        while ((tableMatch = dbTablePattern.exec(sqlText)) !== null) {
+            const tableName = tableMatch[1];
+            if (tableName === identifier) {
+                return {
+                    alias: identifier,
+                    tableName: identifier,
+                    type: 'table'
+                };
+            }
+        }
     }
     
     return null;

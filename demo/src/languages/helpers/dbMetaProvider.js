@@ -124,3 +124,24 @@ export function getTableColumns(languageId, tableName) {
 
 	return Promise.resolve(columnCompletions);
 }
+
+/**
+ * Get columns for table with catalog and database context
+ * This is the new API from the PR for better column completion
+ */
+export function getColumns(languageId, catalog, database, tableName) {
+	// For demo purposes, we'll use the same mock data
+	// In production, this would query the actual database metadata
+	const cleanTableName = tableName.replace(new RegExp(`^${languageId.replace(/sql/gi, '').toLowerCase()}_`), '');
+	const columns = tableColumns[cleanTableName] || ['id', 'name', 'value'];
+	
+	const columnCompletions = columns.map((col) => ({
+		label: col,
+		insertText: col,
+		kind: languages.CompletionItemKind.Field,
+		detail: `${catalog ? catalog + '.' : ''}${database ? database + '.' : ''}${tableName}.${col}`,
+		sortText: '0' + col
+	}));
+
+	return Promise.resolve(columnCompletions);
+}
