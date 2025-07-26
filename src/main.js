@@ -1,7 +1,6 @@
+import { createApp } from 'vue';
+import App from './App.vue';
 import './languages';
-import { initializeEditor } from './editor';
 import './style.css';
 
-document.addEventListener('DOMContentLoaded', () => {
-  initializeEditor();
-});
+createApp(App).mount('#app');

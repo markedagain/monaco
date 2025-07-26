@@ -10,28 +10,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Architecture
 
-This is a vanilla JavaScript web application that demonstrates Monaco SQL Languages functionality. The project is a website/demo for the monaco-sql-languages library.
+This is a Vue 3 web application that demonstrates Monaco SQL Languages functionality. The project is a website/demo for the monaco-sql-languages library.
 
 ### Key Components
 
-- **main.js**: Application entry point that initializes the editor
-- **editor.js**: Monaco editor setup and configuration
-  - Creates the editor instance with SQL language support
-  - Handles language switching between SQL dialects
+- **src/main.js**: Vue 3 application entry point that creates and mounts the app
+- **src/App.vue**: Main Vue component containing application state and logic
+  - Manages Monaco editor instance and SQL language service
+  - Handles language switching between SQL dialects  
   - Implements SQL validation and parsing functionality
+- **src/components/MonacoEditor.vue**: Vue component wrapping Monaco editor
+  - Creates the editor instance with SQL language support
+  - Handles editor lifecycle and content changes
+- **src/components/LanguageSelector.vue**: Language selection dropdown component
+- **src/components/OutputPanel.vue**: Output display component for validation and parse results
 - **src/languages/**: SQL language configuration and setup
   - Configures multiple SQL dialects (Flink, Spark, Hive, MySQL, Trino, PostgreSQL, Impala)
   - Handles custom DTStack parameter preprocessing (`@@{componentParams}`, `${taskCustomParams}`)
   - Sets up completion services and language features
-- **config.js**: Language configuration and constants
+- **src/config.js**: Language configuration and constants
 
 ### Architecture Notes
 
+- Vue 3 (v3.5.18) with Composition API for reactive UI components
 - Monaco Editor (v0.31.0) for code editing
 - Monaco SQL Languages (v0.15.1) for SQL language support
-- Vite for build tooling
+- Vite for build tooling with Vue plugin support
+- Component-based architecture with clear separation of concerns
 - Pure JavaScript - no TypeScript
-- No framework dependencies - ready for migration to Vue.js or other frameworks
 - Completely standalone project with no parent directory dependencies
 
 ### Build Output

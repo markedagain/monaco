@@ -9,8 +9,10 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
+		"@vitejs/plugin-vue": "^4.6.2",
 		"monaco-editor": "0.31.0",
-		"monaco-sql-languages": "^0.15.1"
+		"monaco-sql-languages": "^0.15.1",
+		"vue": "^3.5.18"
 	},
 	"devDependencies": {
 		"vite": "^4.3.9"
