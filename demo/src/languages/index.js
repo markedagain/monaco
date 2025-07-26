@@ -1,4 +1,5 @@
-import { setupLanguages, setupLanguageWorkers } from 'monaco-sql-languages-ext';
+import { setupLanguages, setupLanguageWorkers, configureDbProviders } from 'monaco-sql-languages-ext';
+import { MockDatabaseProvider, staticDatabaseConfig } from '../database/mockDbProvider';
 
 // Import workers
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
@@ -21,6 +22,23 @@ setupLanguageWorkers({
 	TrinoSQLWorker,
 	ImpalaSQLWorker
 });
+
+// Configure database providers
+// Option 1: Use mock provider with simulated API calls
+const mockProvider = new MockDatabaseProvider();
+configureDbProviders({
+	catalogProvider: mockProvider.getCatalogs.bind(mockProvider),
+	databaseProvider: mockProvider.getDatabases.bind(mockProvider),
+	tableProvider: mockProvider.getTables.bind(mockProvider),
+	columnProvider: mockProvider.getColumns.bind(mockProvider)
+});
+
+// Option 2: Use static data (uncomment to try)
+// configureDbProviders(staticDatabaseConfig);
+
+// Option 3: Use real API (example)
+// const apiConfig = createApiDatabaseConfig('https://your-api.com', 'your-api-key');
+// configureDbProviders(apiConfig);
 
 // Setup enhanced language features
 setupLanguages();
