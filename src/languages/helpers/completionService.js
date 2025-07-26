@@ -1,7 +1,13 @@
 import { languages } from 'monaco-editor/esm/vs/editor/editor.api';
 import { EntityContextType } from 'monaco-sql-languages/esm/main';
 
-import { getCatalogs, getDataBases, getSchemas, getTables, getViews } from './dbMetaProvider';
+import { getCatalogs, getDataBases, getSchemas, getTables, getViews, getTableColumns } from './dbMetaProvider';
+import { 
+	extractTableAliases, 
+	extractDatabaseAliases, 
+	createAliasCompletionItems, 
+	isAfterAliasDot 
+} from './aliasExtractor';
 
 const haveCatalogSQLType = (languageId) => {
 	return ['flinksql', 'trinosql'].includes(languageId.toLowerCase());
@@ -13,7 +19,7 @@ const namedSchemaSQLType = (languageId) => {
 
 export const completionService = async function (
 	model,
-	_position,
+	position,
 	_completionContext,
 	suggestions,
 	_entities,
@@ -25,6 +31,18 @@ export const completionService = async function (
 	const languageId = model.getLanguageId();
 	const haveCatalog = haveCatalogSQLType(languageId);
 	const getDBOrSchema = namedSchemaSQLType(languageId) ? getSchemas : getDataBases;
+
+	// Get the current SQL text
+	const sqlText = model.getValue();
+	const currentPosition = model.getOffsetAt(position);
+
+	// Extract aliases from the current SQL
+	const tableAliases = extractTableAliases(sqlText);
+	const databaseAliases = extractDatabaseAliases(sqlText);
+	const allAliases = [...tableAliases, ...databaseAliases];
+
+	// Check if we're completing after an alias dot notation
+	const aliasContext = isAfterAliasDot(sqlText, currentPosition);
 
 	const { keywords, syntax } = suggestions;
 
@@ -197,5 +215,22 @@ export const completionService = async function (
 			documentation: item.insertText
 		})) || [];
 
-	return [...syntaxCompletionItems, ...keywordsCompletionItems, ...snippetCompletionItems];
+	// Create alias completion items
+	let aliasCompletionItems = [];
+	
+	// If we're after an alias dot notation, provide table-specific completions
+	if (aliasContext) {
+		// Get actual columns for the aliased table
+		const tableColumns = await getTableColumns(languageId, aliasContext.tableName);
+		aliasCompletionItems = tableColumns.map(col => ({
+			...col,
+			detail: `Column from ${aliasContext.tableName} (alias: ${aliasContext.alias})`,
+			documentation: `Column from table ${aliasContext.tableName} accessed via alias ${aliasContext.alias}`
+		}));
+	} else {
+		// Provide alias completions for general context
+		aliasCompletionItems = createAliasCompletionItems(allAliases);
+	}
+
+	return [...aliasCompletionItems, ...syntaxCompletionItems, ...keywordsCompletionItems, ...snippetCompletionItems];
 };

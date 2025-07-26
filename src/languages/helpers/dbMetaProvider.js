@@ -15,6 +15,16 @@ const tmpSchemaList = [
 const tmpTableList = ['current_db_table1', 'current_db_table2', 'current_db_table3'];
 const tmpViewList = ['current_db_view1', 'current_db_view2', 'current_db_view3'];
 
+// Mock column data for tables
+const tableColumns = {
+	'mock_table1': ['id', 'name', 'email', 'created_at', 'updated_at'],
+	'mock_table2': ['user_id', 'product_id', 'quantity', 'price', 'order_date'],
+	'mock_table3': ['category_id', 'category_name', 'description', 'status'],
+	'current_db_table1': ['employee_id', 'first_name', 'last_name', 'department', 'salary'],
+	'current_db_table2': ['project_id', 'project_name', 'start_date', 'end_date', 'budget'],
+	'current_db_table3': ['customer_id', 'company_name', 'contact_person', 'phone', 'address']
+};
+
 const prefixLabel = (languageId, text) => {
 	const prefix = languageId ? languageId.replace(/sql/gi, '').toLocaleLowerCase() : '';
 	return prefix ? `${prefix}_${text}` : text;
@@ -95,4 +105,22 @@ export function getViews(languageId, catalog, database) {
 	}));
 
 	return Promise.resolve(viewCompletions);
+}
+
+/**
+ * Get columns for a specific table
+ */
+export function getTableColumns(languageId, tableName) {
+	// Remove language prefix if present
+	const cleanTableName = tableName.replace(new RegExp(`^${languageId.replace(/sql/gi, '').toLowerCase()}_`), '');
+	const columns = tableColumns[cleanTableName] || ['id', 'name', 'value']; // Default columns
+	
+	const columnCompletions = columns.map((col) => ({
+		label: col,
+		kind: languages.CompletionItemKind.Field,
+		detail: `Column from ${tableName}`,
+		sortText: '0' + col
+	}));
+
+	return Promise.resolve(columnCompletions);
 }
