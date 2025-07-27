@@ -7,7 +7,8 @@
           :currentLanguage="currentLanguage"
           @language-changed="handleLanguageChange"
         />
-        <button id="parse-button" @click="parseSQL">Parse SQL</button>
+        <button @click="executeQuery">Execute Query (Ctrl+Enter)</button>
+        <button @click="getSelectedText">Get Selection</button>
       </div>
     </header>
     <main class="main-content">
@@ -15,91 +16,82 @@
         <MonacoEditor 
           ref="editorRef"
           :language="currentLanguage"
-          @content-changed="handleContentChange"
         />
       </div>
-      <OutputPanel 
-        :problems="problems"
-        :parseOutput="parseOutput"
-      />
+      <div class="results-panel">
+        <h3>Query Output:</h3>
+        <pre class="sql-output">{{ queryOutput }}</pre>
+      </div>
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { LanguageService } from 'monaco-sql-languages/esm/languageService';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import MonacoEditor from './components/MonacoEditor.vue';
 import LanguageSelector from './components/LanguageSelector.vue';
-import OutputPanel from './components/OutputPanel.vue';
-import { languages, defaultLanguage } from './config';
+
+// Available SQL languages
+const languages = [
+  { id: 'mysql', name: 'MySQL' },
+  { id: 'flinksql', name: 'Flink SQL' },
+  { id: 'sparksql', name: 'Spark SQL' },
+  { id: 'hivesql', name: 'Hive SQL' },
+  { id: 'pgsql', name: 'PostgreSQL' },
+  { id: 'trinosql', name: 'Trino SQL' },
+  { id: 'impalasql', name: 'Impala SQL' }
+];
+
+const defaultLanguage = 'mysql';
 
 const editorRef = ref(null);
 const currentLanguage = ref(defaultLanguage);
-const problems = ref('');
-const parseOutput = ref('');
-const languageService = ref(null);
+const queryOutput = ref('-- Your SQL query will appear here when you execute');
 
 onMounted(() => {
-  languageService.value = new LanguageService();
+  // Listen for keyboard shortcut events from the editor
+  window.addEventListener('execute-sql', executeQuery);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('execute-sql', executeQuery);
 });
 
 function handleLanguageChange(newLanguage) {
   currentLanguage.value = newLanguage;
-  validateSQL();
 }
 
-function handleContentChange() {
-  validateSQL();
-}
-
-async function parseSQL() {
-  if (!editorRef.value || !languageService.value) return;
+function executeQuery() {
+  if (!editorRef.value) return;
   
   const sql = editorRef.value.getValue();
+  queryOutput.value = sql;
   
-  try {
-    const result = await languageService.value.parserTreeToString(
-      currentLanguage.value.toLowerCase(), 
-      sql
-    );
-    parseOutput.value = result || 'Parse successful (no AST available)';
-  } catch (error) {
-    parseOutput.value = `Parse error: ${error}`;
+  // In your Laravel project, send this to your backend:
+  // await $axios.post('/api/execute-sql', {
+  //   query: sql,
+  //   language: currentLanguage.value
+  // }).then(response => {
+  //   queryOutput.value = JSON.stringify(response.data, null, 2);
+  // });
+  
+  console.log('Executing SQL:', sql);
+}
+
+function getSelectedText() {
+  if (!editorRef.value) return;
+  
+  const selectedText = editorRef.value.getSelectedText();
+  if (selectedText) {
+    queryOutput.value = selectedText;
+    console.log('Selected text:', selectedText);
+  } else {
+    alert('No text selected');
   }
 }
 
-async function validateSQL() {
-  if (!editorRef.value || !languageService.value) return;
-  
-  const sql = editorRef.value.getValue();
-  
-  try {
-    const errors = await languageService.value.valid(
-      currentLanguage.value.toLowerCase(), 
-      sql
-    );
-    
-    if (errors && errors.length > 0) {
-      const errorList = errors.map((error) => 
-        `Line ${error.startLine}:${error.startCol} - ${error.message}`
-      ).join('\n');
-      problems.value = errorList;
-    } else {
-      problems.value = 'No syntax errors';
-    }
-  } catch (error) {
-    problems.value = `Validation error: ${error}`;
-  }
-}
-
-function debounce(func, wait) {
-  let timeout;
-  return (...args) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-}
-
-const debouncedValidate = debounce(validateSQL, 200);
+// Global access for integration
+window.getSqlQuery = () => editorRef.value?.getValue();
+window.setSqlQuery = (query) => editorRef.value?.setValue(query);
+window.getSelectedSql = () => editorRef.value?.getSelectedText();
 </script>
